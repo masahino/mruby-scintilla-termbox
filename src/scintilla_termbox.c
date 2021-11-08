@@ -203,7 +203,6 @@ mrb_scintilla_termbox_send_key(mrb_state *mrb, mrb_value self)
   mrb_bool shift, ctrl, alt;
 
   mrb_get_args(mrb, "ibbb", &key, &shift, &ctrl, &alt);
-fprintf(stderr, "key = %c\n", key);
   scintilla_send_key(sci, key, shift, ctrl, alt);
   return mrb_nil_value();
 }
@@ -327,7 +326,6 @@ mrb_scintilla_termbox_send_message_get_str(mrb_state *mrb, mrb_value self)
   return mrb_str_new(mrb, value, len);
 }
 
-/*
 static mrb_value
 mrb_scintilla_termbox_send_mouse(mrb_state *mrb, mrb_value self)
 {
@@ -340,9 +338,8 @@ mrb_scintilla_termbox_send_mouse(mrb_state *mrb, mrb_value self)
   ret = scintilla_send_mouse(sci, event, (unsigned int)time, button, y, x, shift, ctrl, alt);
 
   return (ret == TRUE)? mrb_true_value() : mrb_false_value();
-
 }
-*/
+
 static mrb_value
 mrb_scintilla_termbox_get_property(mrb_state *mrb, mrb_value self)
 {
@@ -426,7 +423,6 @@ mrb_scintilla_termbox_get_lexer_language(mrb_state *mrb, mrb_value self)
   return mrb_str_new_cstr(mrb, text);
 }
 
-
 static mrb_value
 mrb_scintilla_termbox_resize(mrb_state *mrb, mrb_value self)
 {
@@ -435,6 +431,17 @@ mrb_scintilla_termbox_resize(mrb_state *mrb, mrb_value self)
 
   mrb_get_args(mrb, "ii", &width, &height);
   scintilla_resize(sci, width, height);
+  return mrb_nil_value();
+}
+
+static mrb_value
+mrb_scintilla_termbox_move(mrb_state *mrb, mrb_value self)
+{
+  Scintilla *sci = (Scintilla *)DATA_PTR(self);
+  mrb_int new_x, new_y;
+
+  mrb_get_args(mrb, "ii", &new_x, &new_y);
+  scintilla_move(sci, new_x, new_y);
   return mrb_nil_value();
 }
 
@@ -590,7 +597,7 @@ mrb_mruby_scintilla_termbox_gem_init(mrb_state* mrb)
   mrb_define_method(mrb, sci, "send_message_get_str", mrb_scintilla_termbox_send_message_get_str,
     MRB_ARGS_ARG(1, 1));
 
-//  mrb_define_method(mrb, sci, "send_mouse", mrb_scintilla_termbox_send_mouse, MRB_ARGS_REQ(8));
+  mrb_define_method(mrb, sci, "send_mouse", mrb_scintilla_termbox_send_mouse, MRB_ARGS_REQ(8));
 
   mrb_define_method(mrb, sci, "sci_get_property", mrb_scintilla_termbox_get_property, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, sci, "sci_get_text", mrb_scintilla_termbox_get_text, MRB_ARGS_REQ(1));
@@ -601,6 +608,7 @@ mrb_mruby_scintilla_termbox_gem_init(mrb_state* mrb)
   mrb_define_method(mrb, sci, "sci_get_lexer_language", mrb_scintilla_termbox_get_lexer_language, MRB_ARGS_NONE());
 
   mrb_define_method(mrb, sci, "resize", mrb_scintilla_termbox_resize, MRB_ARGS_REQ(2));
+  mrb_define_method(mrb, sci, "move", mrb_scintilla_termbox_move, MRB_ARGS_REQ(2));
 
   mrb_define_method(mrb, sci, "sci_get_docpointer", mrb_scintilla_termbox_get_docpointer, MRB_ARGS_NONE());
   mrb_define_method(mrb, sci, "sci_set_docpointer", mrb_scintilla_termbox_set_docpointer, MRB_ARGS_REQ(1));
@@ -612,6 +620,10 @@ mrb_mruby_scintilla_termbox_gem_init(mrb_state* mrb)
   mrb_define_method(mrb, sci, "sci_margin_get_text", mrb_scintilla_termbox_margin_get_text, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, sci, "sci_get_textrange", mrb_scintilla_termbox_get_textrange, MRB_ARGS_REQ(2));
   mrb_define_method(mrb, sci, "sci_get_wordchars", mrb_scintilla_termbox_get_wordchars, MRB_ARGS_NONE());
+
+  mrb_define_const(mrb, scim, "SCM_PRESS", mrb_fixnum_value(SCM_PRESS));
+  mrb_define_const(mrb, scim, "SCM_DRAG", mrb_fixnum_value(SCM_DRAG));
+  mrb_define_const(mrb, scim, "SCM_RELEASE", mrb_fixnum_value(SCM_RELEASE));
 
   scmrb = mrb;
 

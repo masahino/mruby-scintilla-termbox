@@ -340,6 +340,19 @@ mrb_scintilla_termbox_send_mouse(mrb_state *mrb, mrb_value self)
   return (ret == TRUE)? mrb_true_value() : mrb_false_value();
 }
 
+/* scintilla_get_clipboard (sci, buffer) */
+static mrb_value
+mrb_scintilla_termbox_get_clipboard(mrb_state *mrb, mrb_value self)
+{
+  Scintilla *sci;
+  char *buffer = NULL;
+  int len;
+
+  sci = (Scintilla *)DATA_PTR(self);
+  buffer = scintilla_get_clipboard(sci, &len);
+  return mrb_str_new(mrb, buffer, len);
+}
+
 static mrb_value
 mrb_scintilla_termbox_get_property(mrb_state *mrb, mrb_value self)
 {
@@ -598,6 +611,7 @@ mrb_mruby_scintilla_termbox_gem_init(mrb_state* mrb)
     MRB_ARGS_ARG(1, 1));
 
   mrb_define_method(mrb, sci, "send_mouse", mrb_scintilla_termbox_send_mouse, MRB_ARGS_REQ(8));
+  mrb_define_method(mrb, sci, "get_clipboard", mrb_scintilla_termbox_get_clipboard, MRB_ARGS_NONE());
 
   mrb_define_method(mrb, sci, "sci_get_property", mrb_scintilla_termbox_get_property, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, sci, "sci_get_text", mrb_scintilla_termbox_get_text, MRB_ARGS_REQ(1));

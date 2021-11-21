@@ -48,7 +48,7 @@ MRuby::Gem::Specification.new('mruby-scintilla-termbox') do |spec|
     end
 
     file termbox_a => termbox_h do
-      sh %((cd #{termbox_dir} && make))
+      sh %((cd #{termbox_dir} && make CC=#{build.cc.command} AR=#{build.archiver.command}))
     end
 
     file scintilla_a => [scintilla_h, scintilla_termbox_h, termbox_a] do

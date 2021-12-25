@@ -321,9 +321,54 @@ mrb_scintilla_termbox_send_message_get_str(mrb_state *mrb, mrb_value self)
   }
 
   len = scintilla_send_message(sci, i_message, w_param, (sptr_t)NULL);
-  value = (char *)mrb_malloc(mrb, sizeof(char)*len);
+  value = (char *)mrb_malloc(mrb, sizeof(char)*len + 1);
   len = scintilla_send_message(sci, i_message, w_param, (sptr_t)value);
-  return mrb_str_new(mrb, value, len);
+  return mrb_str_new_cstr(mrb, value);
+}
+
+static mrb_value
+mrb_scintilla_termbox_send_message_get_text(mrb_state *mrb, mrb_value self)
+{
+  Scintilla *sci = (Scintilla *)DATA_PTR(self);
+  char *text = NULL;
+  mrb_int nlen;
+
+  mrb_get_args(mrb, "i", &nlen);
+  text = (char *)mrb_malloc(mrb, sizeof(char) * nlen + 1);
+  scintilla_send_message(sci, SCI_GETTEXT, (uptr_t)nlen, (sptr_t)text);
+  return mrb_str_new_cstr(mrb, text);
+}
+
+static mrb_value
+mrb_scintilla_termbox_send_message_get_curline(mrb_state *mrb, mrb_value self)
+{
+  Scintilla *sci = (Scintilla *)DATA_PTR(self);
+  char *text = NULL;
+  mrb_int len, pos;
+  mrb_value ret_a = mrb_ary_new(mrb);
+
+  len = scintilla_send_message(sci, SCI_GETCURLINE, (uptr_t)0, (sptr_t)0);
+  text = (char *)mrb_malloc(mrb, sizeof(char) * len + 1);
+  pos = scintilla_send_message(sci, SCI_GETCURLINE, (uptr_t)len, (sptr_t)text);
+  mrb_ary_push(mrb, ret_a, mrb_str_new_cstr(mrb, text));
+  mrb_ary_push(mrb, ret_a, mrb_fixnum_value(pos));
+  return ret_a;
+}
+
+static mrb_value
+mrb_scintilla_termbox_send_message_get_line(mrb_state *mrb, mrb_value self)
+{
+  Scintilla *sci = (Scintilla *)DATA_PTR(self);
+  char *text = NULL;
+  mrb_int line, len;
+
+  mrb_get_args(mrb, "i", &line);
+  len = scintilla_send_message(sci, SCI_LINELENGTH, (uptr_t)line, (sptr_t)0);
+  text = (char *)mrb_malloc(mrb, sizeof(char) * len + 1);
+  scintilla_send_message(sci, SCI_GETLINE, (uptr_t)line, (sptr_t)text);
+  text[len] = '\0';
+
+  return mrb_str_new_cstr(mrb, text);
 }
 
 static mrb_value
@@ -354,63 +399,6 @@ mrb_scintilla_termbox_get_clipboard(mrb_state *mrb, mrb_value self)
 }
 
 static mrb_value
-mrb_scintilla_termbox_get_property(mrb_state *mrb, mrb_value self)
-{
-  Scintilla *sci = (Scintilla *)DATA_PTR(self);
-  char *key = NULL, *value = NULL;
-  mrb_int len;
-
-  mrb_get_args(mrb, "z", &key);
-  len = scintilla_send_message(sci, SCI_GETPROPERTY, (uptr_t)key, (sptr_t)NULL);
-  value = (char *)malloc(sizeof(char)*len);
-  len = scintilla_send_message(sci, SCI_GETPROPERTY, (uptr_t)key, (sptr_t)value);
-  return mrb_str_new(mrb, value, len);
-}
-
-static mrb_value
-mrb_scintilla_termbox_get_text(mrb_state *mrb, mrb_value self)
-{
-  Scintilla *sci = (Scintilla *)DATA_PTR(self);
-  char *text = NULL;
-  mrb_int nlen;
-
-  mrb_get_args(mrb, "i", &nlen);
-  text = (char *)mrb_malloc(mrb, sizeof(char)*nlen);
-  scintilla_send_message(sci, SCI_GETTEXT, (uptr_t)nlen, (sptr_t)text);
-  return mrb_str_new_cstr(mrb, text);
-}
-
-static mrb_value
-mrb_scintilla_termbox_get_line(mrb_state *mrb, mrb_value self)
-{
-  Scintilla *sci = (Scintilla *)DATA_PTR(self);
-  char *text = NULL;
-  mrb_int line, len;
-
-  mrb_get_args(mrb, "i", &line);
-  len = scintilla_send_message(sci, SCI_LINELENGTH, (uptr_t)line, (sptr_t)0);
-  text = (char *)mrb_malloc(mrb, sizeof(char)*len);
-  scintilla_send_message(sci, SCI_GETLINE, (uptr_t)line, (sptr_t)text);
-  return mrb_str_new(mrb, text, len);
-}
-
-static mrb_value
-mrb_scintilla_termbox_get_curline(mrb_state *mrb, mrb_value self)
-{
-  Scintilla *sci = (Scintilla *)DATA_PTR(self);
-  char *text = NULL;
-  mrb_int len, pos;
-  mrb_value ret_a = mrb_ary_new(mrb);
-
-  len = scintilla_send_message(sci, SCI_GETCURLINE, (uptr_t)0, (sptr_t)0) + 1;
-  text = (char *)mrb_malloc(mrb, sizeof(char)*len);
-  pos = scintilla_send_message(sci, SCI_GETCURLINE, (uptr_t)len, (sptr_t)text);
-  mrb_ary_push(mrb, ret_a, mrb_str_new_cstr(mrb, text));
-  mrb_ary_push(mrb, ret_a, mrb_fixnum_value(pos));
-  return ret_a;
-}
-
-static mrb_value
 mrb_scintilla_termbox_set_lexer_language(mrb_state *mrb, mrb_value self)
 {
   Scintilla *sci = (Scintilla *)DATA_PTR(self);
@@ -421,19 +409,6 @@ mrb_scintilla_termbox_set_lexer_language(mrb_state *mrb, mrb_value self)
 //  scintilla_send_message(sci, SCI_SETLEXERLANGUAGE, 0, (sptr_t)lang);
   scintilla_send_message(sci, SCI_SETILEXER, 0, (sptr_t)pLexer);
   return mrb_nil_value();
-}
-
-static mrb_value
-mrb_scintilla_termbox_get_lexer_language(mrb_state *mrb, mrb_value self)
-{
-  Scintilla *sci = (Scintilla *)DATA_PTR(self);
-  mrb_int len;
-  char *text = NULL;
-
-  len = scintilla_send_message(sci, SCI_GETLEXERLANGUAGE, (uptr_t)0, (sptr_t)0) + 1;
-  text = (char *)mrb_malloc(mrb, sizeof(char)*len);
-  scintilla_send_message(sci, SCI_GETLEXERLANGUAGE, (uptr_t)len, (sptr_t)text);
-  return mrb_str_new_cstr(mrb, text);
 }
 
 static mrb_value
@@ -527,37 +502,6 @@ mrb_scintilla_termbox_release_document(mrb_state *mrb, mrb_value self)
 }
 
 static mrb_value
-mrb_scintilla_termbox_autoc_get_current_text(mrb_state *mrb, mrb_value self)
-{
-  Scintilla *sci = (Scintilla *)DATA_PTR(self);
-  char *text = NULL;
-  mrb_int len;
-
-  len = scintilla_send_message(sci, SCI_AUTOCGETCURRENTTEXT, (uptr_t)0, (sptr_t)0) + 1;
-  if (len == 1) {
-    return mrb_nil_value();
-  }
-  text = (char *)mrb_malloc(mrb, sizeof(char)*len);
-  len = scintilla_send_message(sci, SCI_AUTOCGETCURRENTTEXT, (uptr_t)len, (sptr_t)text);
-  return mrb_str_new_cstr(mrb, text);
-}
-
-static mrb_value
-mrb_scintilla_termbox_margin_get_text(mrb_state *mrb, mrb_value self)
-{
-  Scintilla *sci = (Scintilla *)DATA_PTR(self);
-  char *text = NULL;
-  mrb_int line, len;
-
-  mrb_get_args(mrb, "i", &line);
-  len = scintilla_send_message(sci, SCI_MARGINGETTEXT, (uptr_t)line, (sptr_t)0) + 1;
-  text = (char *)mrb_malloc(mrb, sizeof(char)*len);
-  len = scintilla_send_message(sci, SCI_MARGINGETTEXT, (uptr_t)line, (sptr_t)text);
-  text[len] = '\0';
-  return mrb_str_new_cstr(mrb, text);
-}
-
-static mrb_value
 mrb_scintilla_termbox_get_textrange(mrb_state *mrb, mrb_value self)
 {
   Scintilla *sci = (Scintilla *)DATA_PTR(self);
@@ -568,22 +512,10 @@ mrb_scintilla_termbox_get_textrange(mrb_state *mrb, mrb_value self)
   mrb_get_args(mrb, "ii", &cp_min, &cp_max);
   tr->chrg.cpMin = cp_min;
   tr->chrg.cpMax = cp_max;
-  tr->lpstrText = (char *)mrb_malloc(mrb, sizeof(char)*(cp_max-cp_min+2));
+  tr->lpstrText = (char *)mrb_malloc(mrb, sizeof(char)*(cp_max - cp_min + 2));
 
   len = scintilla_send_message(sci, SCI_GETTEXTRANGE, 0, (sptr_t)tr);
   return mrb_str_new_cstr(mrb, tr->lpstrText);
-}
-
-static mrb_value
-mrb_scintilla_termbox_get_wordchars(mrb_state *mrb, mrb_value self)
-{
-  Scintilla *sci = (Scintilla *)DATA_PTR(self);
-  char *text = NULL;
-  mrb_int len;
-  len = scintilla_send_message(sci, SCI_GETWORDCHARS, 0, (sptr_t)0) + 1;
-  text = (char *)mrb_malloc(mrb, sizeof(char)*len);
-  len = scintilla_send_message(sci, SCI_GETWORDCHARS, 0, (sptr_t)text);
-  return mrb_str_new_cstr(mrb, text);
 }
 
 void
@@ -609,17 +541,16 @@ mrb_mruby_scintilla_termbox_gem_init(mrb_state* mrb)
   mrb_define_method(mrb, sci, "send_message", mrb_scintilla_termbox_send_message, MRB_ARGS_ARG(1, 2));
   mrb_define_method(mrb, sci, "send_message_get_str", mrb_scintilla_termbox_send_message_get_str,
     MRB_ARGS_ARG(1, 1));
+  mrb_define_method(mrb, sci, "send_message_get_text", mrb_scintilla_termbox_send_message_get_text,
+    MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, sci, "send_message_get_curline", mrb_scintilla_termbox_send_message_get_curline, MRB_ARGS_NONE());
+  mrb_define_method(mrb, sci, "send_message_get_line", mrb_scintilla_termbox_send_message_get_line, MRB_ARGS_REQ(1));
 
   mrb_define_method(mrb, sci, "send_mouse", mrb_scintilla_termbox_send_mouse, MRB_ARGS_REQ(8));
   mrb_define_method(mrb, sci, "get_clipboard", mrb_scintilla_termbox_get_clipboard, MRB_ARGS_NONE());
 
-  mrb_define_method(mrb, sci, "sci_get_property", mrb_scintilla_termbox_get_property, MRB_ARGS_REQ(1));
-  mrb_define_method(mrb, sci, "sci_get_text", mrb_scintilla_termbox_get_text, MRB_ARGS_REQ(1));
-  mrb_define_method(mrb, sci, "sci_get_line", mrb_scintilla_termbox_get_line, MRB_ARGS_REQ(1));
-  mrb_define_method(mrb, sci, "sci_get_curline", mrb_scintilla_termbox_get_curline, MRB_ARGS_NONE());
 
   mrb_define_method(mrb, sci, "sci_set_lexer_language", mrb_scintilla_termbox_set_lexer_language, MRB_ARGS_REQ(1));
-  mrb_define_method(mrb, sci, "sci_get_lexer_language", mrb_scintilla_termbox_get_lexer_language, MRB_ARGS_NONE());
 
   mrb_define_method(mrb, sci, "resize", mrb_scintilla_termbox_resize, MRB_ARGS_REQ(2));
   mrb_define_method(mrb, sci, "move", mrb_scintilla_termbox_move, MRB_ARGS_REQ(2));
@@ -630,10 +561,7 @@ mrb_mruby_scintilla_termbox_gem_init(mrb_state* mrb)
   mrb_define_method(mrb, sci, "sci_add_refdocument", mrb_scintilla_termbox_add_refdocument, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, sci, "sci_release_document", mrb_scintilla_termbox_release_document, MRB_ARGS_REQ(1));
   
-  mrb_define_method(mrb, sci, "sci_autoc_get_current_text", mrb_scintilla_termbox_autoc_get_current_text, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sci, "sci_margin_get_text", mrb_scintilla_termbox_margin_get_text, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, sci, "sci_get_textrange", mrb_scintilla_termbox_get_textrange, MRB_ARGS_REQ(2));
-  mrb_define_method(mrb, sci, "sci_get_wordchars", mrb_scintilla_termbox_get_wordchars, MRB_ARGS_NONE());
 
   mrb_define_const(mrb, scim, "SCM_PRESS", mrb_fixnum_value(SCM_PRESS));
   mrb_define_const(mrb, scim, "SCM_DRAG", mrb_fixnum_value(SCM_DRAG));

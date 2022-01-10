@@ -107,3 +107,37 @@ assert('SCI_MARGINGETTEXT') do
   st.sci_margin_set_text(1, 'bbbb')
   assert_equal 'bbbb', st.SCI_MARGINGETTEXT(1)
 end
+
+assert('SCI_GETDOCPOINTER') do
+  st = Scintilla::ScintillaTermbox.new
+  doc = st.SCI_GETDOCPOINTER
+  assert_kind_of Scintilla::Document, doc
+end
+
+assert('SCI_CREATEDOCUMENT') do
+  st = Scintilla::ScintillaTermbox.new
+  assert_equal 0, st.SCI_GETDOCUMENTOPTIONS
+  doc = st.SCI_CREATEDOCUMENT(0, 0x100)
+  assert_kind_of Scintilla::Document, doc
+  st.sci_set_docpointer(doc)
+  assert_equal 0x100, st.SCI_GETDOCUMENTOPTIONS
+end
+
+assert('SCI_SETDOCPOINTER') do
+  st = Scintilla::ScintillaTermbox.new
+  doc = st.sci_get_docpointer
+  st.sci_set_docpointer(nil)
+  assert_not_equal st.sci_get_docpointer, doc
+end
+
+assert('SCI_ADDREFDOCUMENT') do
+  st = Scintilla::ScintillaTermbox.new
+  doc = st.sci_getdocpointer
+  assert_equal 0, st.SCI_ADDREFDOCUMENT(doc)
+end
+
+assert('SCI_RELEASEDOCUMENT') do
+  st = Scintilla::ScintillaTermbox.new
+  doc = st.sci_createdocument
+  assert_equal 0, st.SCI_RELEASEDOCUMENT(doc)
+end

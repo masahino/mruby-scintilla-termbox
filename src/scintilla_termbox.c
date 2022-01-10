@@ -323,6 +323,7 @@ mrb_scintilla_termbox_send_message_get_str(mrb_state *mrb, mrb_value self)
   len = scintilla_send_message(sci, i_message, w_param, (sptr_t)NULL);
   value = (char *)mrb_malloc(mrb, sizeof(char)*len + 1);
   len = scintilla_send_message(sci, i_message, w_param, (sptr_t)value);
+  value[len] = '\0';
   return mrb_str_new_cstr(mrb, value);
 }
 
@@ -369,6 +370,48 @@ mrb_scintilla_termbox_send_message_get_line(mrb_state *mrb, mrb_value self)
   text[len] = '\0';
 
   return mrb_str_new_cstr(mrb, text);
+}
+
+static mrb_value
+mrb_scintilla_termbox_send_message_get_docpointer(mrb_state *mrb, mrb_value self)
+{
+  Scintilla *sci = (Scintilla *)DATA_PTR(self);
+  sptr_t pdoc;
+  mrb_int argc, i_message, w_param, l_param;
+
+  argc = mrb_get_args(mrb, "i|ii", &i_message, &w_param, &l_param);
+  if (argc == 1) {
+    w_param = 0;
+    l_param = 0;
+  }
+  struct mrb_scintilla_doc_data *doc = (struct mrb_scintilla_doc_data *)mrb_malloc(mrb, sizeof(struct mrb_scintilla_doc_data));
+
+  pdoc = scintilla_send_message(sci, i_message, (uptr_t)w_param, (sptr_t)l_param);
+  if (pdoc == 0) {
+    return mrb_nil_value();
+  } else {
+    doc->pdoc = pdoc;
+    return mrb_obj_value(mrb_data_object_alloc(mrb, mrb_class_get_under(mrb, mrb_module_get(mrb, "Scintilla"), "Document"), doc, &mrb_document_type));
+  }
+}
+
+static mrb_value
+mrb_scintilla_termbox_send_message_set_docpointer(mrb_state *mrb, mrb_value self)
+{
+  Scintilla *sci = (Scintilla *)DATA_PTR(self);
+  struct mrb_scintilla_doc_data *doc;
+  mrb_int i_message;
+  mrb_int ret;
+  mrb_value doc_obj;
+
+  mrb_get_args(mrb, "io", &i_message, &doc_obj);
+  if (mrb_nil_p(doc_obj) || mrb_integer_p(doc_obj)) {
+    ret = scintilla_send_message(sci, i_message, 0, (sptr_t)0);
+  } else {
+    doc = (struct mrb_scintilla_doc_data *)DATA_PTR(doc_obj);
+    ret = scintilla_send_message(sci, i_message, 0, doc->pdoc);
+  }
+  return mrb_fixnum_value(ret);
 }
 
 static mrb_value
@@ -434,74 +477,6 @@ mrb_scintilla_termbox_move(mrb_state *mrb, mrb_value self)
 }
 
 static mrb_value
-mrb_scintilla_termbox_get_docpointer(mrb_state *mrb, mrb_value self)
-{
-  Scintilla *sci = (Scintilla *)DATA_PTR(self);
-  sptr_t pdoc;
-  struct mrb_scintilla_doc_data *doc = (struct mrb_scintilla_doc_data *)mrb_malloc(mrb, sizeof(struct mrb_scintilla_doc_data));
-
-  pdoc = scintilla_send_message(sci, SCI_GETDOCPOINTER, 0, 0);
-  doc->pdoc = pdoc;
-  return mrb_obj_value(mrb_data_object_alloc(mrb, mrb_class_get_under(mrb, mrb_module_get(mrb, "Scintilla"), "Document"), doc, &mrb_document_type));
-}
-
-static mrb_value
-mrb_scintilla_termbox_set_docpointer(mrb_state *mrb, mrb_value self)
-{
-  Scintilla *sci = (Scintilla *)DATA_PTR(self);
-  struct mrb_scintilla_doc_data *doc;
-  mrb_value doc_obj;
-
-  mrb_get_args(mrb, "o", &doc_obj);
-  if (mrb_nil_p(doc_obj)) {
-    scintilla_send_message(sci, SCI_SETDOCPOINTER, 0, (sptr_t)0);
-  } else {
-    doc = (struct mrb_scintilla_doc_data *)DATA_PTR(doc_obj);
-    scintilla_send_message(sci, SCI_SETDOCPOINTER, 0, doc->pdoc);
-  }
-  return mrb_nil_value();
-}
-
-static mrb_value
-mrb_scintilla_termbox_create_document(mrb_state *mrb, mrb_value self)
-{
-  Scintilla *sci = (Scintilla *)DATA_PTR(self);
-  sptr_t pdoc;
-  struct mrb_scintilla_doc_data *doc = (struct mrb_scintilla_doc_data *)mrb_malloc(mrb, sizeof(struct mrb_scintilla_doc_data));
-
-  pdoc = scintilla_send_message(sci, SCI_CREATEDOCUMENT, 0, 0);
-  doc->pdoc = pdoc;
-  return mrb_obj_value(mrb_data_object_alloc(mrb, mrb_class_get_under(mrb, mrb_module_get(mrb, "Scintilla"), "Document"), doc, &mrb_document_type));
-
-}
-
-static mrb_value
-mrb_scintilla_termbox_add_refdocument(mrb_state *mrb, mrb_value self)
-{
-  Scintilla *sci = (Scintilla *)DATA_PTR(self);
-  struct mrb_scintilla_doc_data *doc;
-  mrb_value doc_obj;
-
-  mrb_get_args(mrb, "o", &doc_obj);
-  doc = (struct mrb_scintilla_doc_data *)DATA_PTR(doc_obj);
-  scintilla_send_message(sci, SCI_ADDREFDOCUMENT, 0, doc->pdoc);
-  return mrb_nil_value();
-}
-
-static mrb_value
-mrb_scintilla_termbox_release_document(mrb_state *mrb, mrb_value self)
-{
-  Scintilla *sci = (Scintilla *)DATA_PTR(self);
-  struct mrb_scintilla_doc_data *doc;
-  mrb_value doc_obj;
-
-  mrb_get_args(mrb, "o", &doc_obj);
-  doc = (struct mrb_scintilla_doc_data *)DATA_PTR(doc_obj);
-  scintilla_send_message(sci, SCI_RELEASEDOCUMENT, 0, doc->pdoc);
-  return mrb_nil_value();
-}
-
-static mrb_value
 mrb_scintilla_termbox_get_textrange(mrb_state *mrb, mrb_value self)
 {
   Scintilla *sci = (Scintilla *)DATA_PTR(self);
@@ -545,6 +520,10 @@ mrb_mruby_scintilla_termbox_gem_init(mrb_state* mrb)
     MRB_ARGS_REQ(1));
   mrb_define_method(mrb, sci, "send_message_get_curline", mrb_scintilla_termbox_send_message_get_curline, MRB_ARGS_NONE());
   mrb_define_method(mrb, sci, "send_message_get_line", mrb_scintilla_termbox_send_message_get_line, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, sci, "send_message_get_docpointer", mrb_scintilla_termbox_send_message_get_docpointer,
+    MRB_ARGS_ARG(1, 2));
+  mrb_define_method(mrb, sci, "send_message_set_docpointer", mrb_scintilla_termbox_send_message_set_docpointer,
+    MRB_ARGS_REQ(2));
 
   mrb_define_method(mrb, sci, "send_mouse", mrb_scintilla_termbox_send_mouse, MRB_ARGS_REQ(8));
   mrb_define_method(mrb, sci, "get_clipboard", mrb_scintilla_termbox_get_clipboard, MRB_ARGS_NONE());
@@ -555,12 +534,6 @@ mrb_mruby_scintilla_termbox_gem_init(mrb_state* mrb)
   mrb_define_method(mrb, sci, "resize", mrb_scintilla_termbox_resize, MRB_ARGS_REQ(2));
   mrb_define_method(mrb, sci, "move", mrb_scintilla_termbox_move, MRB_ARGS_REQ(2));
 
-  mrb_define_method(mrb, sci, "sci_get_docpointer", mrb_scintilla_termbox_get_docpointer, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sci, "sci_set_docpointer", mrb_scintilla_termbox_set_docpointer, MRB_ARGS_REQ(1));
-  mrb_define_method(mrb, sci, "sci_create_document", mrb_scintilla_termbox_create_document, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sci, "sci_add_refdocument", mrb_scintilla_termbox_add_refdocument, MRB_ARGS_REQ(1));
-  mrb_define_method(mrb, sci, "sci_release_document", mrb_scintilla_termbox_release_document, MRB_ARGS_REQ(1));
-  
   mrb_define_method(mrb, sci, "sci_get_textrange", mrb_scintilla_termbox_get_textrange, MRB_ARGS_REQ(2));
 
   mrb_define_const(mrb, scim, "SCM_PRESS", mrb_fixnum_value(SCM_PRESS));

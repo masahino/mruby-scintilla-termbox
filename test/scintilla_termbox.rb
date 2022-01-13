@@ -141,3 +141,15 @@ assert('SCI_RELEASEDOCUMENT') do
   doc = st.sci_createdocument
   assert_equal 0, st.SCI_RELEASEDOCUMENT(doc)
 end
+
+assert('create_lexer') do
+  lexer = Scintilla.create_lexer('ruby')
+  assert_not_nil lexer
+end
+
+assert('SCI_SETILEXER') do
+  st = Scintilla::ScintillaTermbox.new
+  lexer = Scintilla.create_lexer('ruby')
+  st.SCI_SETILEXER(lexer)
+  assert_equal 'ruby', st.SCI_GETLEXERLANGUAGE
+end

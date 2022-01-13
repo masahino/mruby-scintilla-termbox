@@ -415,6 +415,26 @@ mrb_scintilla_termbox_send_message_set_docpointer(mrb_state *mrb, mrb_value self
 }
 
 static mrb_value
+mrb_scintilla_termbox_send_message_set_pointer(mrb_state *mrb, mrb_value self)
+{
+  Scintilla *sci = (Scintilla *)DATA_PTR(self);
+  mrb_int i_message;
+  mrb_int ret;
+  mrb_value cptr_obj;
+
+  mrb_get_args(mrb, "io", &i_message, &cptr_obj);
+  if (mrb_nil_p(cptr_obj) || mrb_integer_p(cptr_obj)) {
+    ret = scintilla_send_message(sci, i_message, 0, (sptr_t)0);
+  } else if (mrb_cptr_p(cptr_obj)){
+
+    ret = scintilla_send_message(sci, i_message, 0, (sptr_t)mrb_cptr(cptr_obj));
+  } else {
+    return mrb_nil_value();
+  }
+  return mrb_fixnum_value(ret);
+}
+
+static mrb_value
 mrb_scintilla_termbox_send_mouse(mrb_state *mrb, mrb_value self)
 {
   Scintilla *sci = (Scintilla *)DATA_PTR(self);
@@ -493,6 +513,17 @@ mrb_scintilla_termbox_get_textrange(mrb_state *mrb, mrb_value self)
   return mrb_str_new_cstr(mrb, tr->lpstrText);
 }
 
+static mrb_value
+mrb_scintilla_create_lexer(mrb_state *mrb, mrb_value self)
+{
+  char *lang = NULL;
+  mrb_get_args(mrb, "z", &lang);
+
+  ILexer5 *pLexer = CreateLexer(lang);
+
+  return mrb_cptr_value(mrb, pLexer);
+}
+
 void
 mrb_mruby_scintilla_termbox_gem_init(mrb_state* mrb)
 {
@@ -524,6 +555,7 @@ mrb_mruby_scintilla_termbox_gem_init(mrb_state* mrb)
     MRB_ARGS_ARG(1, 2));
   mrb_define_method(mrb, sci, "send_message_set_docpointer", mrb_scintilla_termbox_send_message_set_docpointer,
     MRB_ARGS_REQ(2));
+  mrb_define_method(mrb, sci, "send_message_set_pointer", mrb_scintilla_termbox_send_message_set_pointer, MRB_ARGS_REQ(2));
 
   mrb_define_method(mrb, sci, "send_mouse", mrb_scintilla_termbox_send_mouse, MRB_ARGS_REQ(8));
   mrb_define_method(mrb, sci, "get_clipboard", mrb_scintilla_termbox_get_clipboard, MRB_ARGS_NONE());
@@ -539,6 +571,8 @@ mrb_mruby_scintilla_termbox_gem_init(mrb_state* mrb)
   mrb_define_const(mrb, scim, "SCM_PRESS", mrb_fixnum_value(SCM_PRESS));
   mrb_define_const(mrb, scim, "SCM_DRAG", mrb_fixnum_value(SCM_DRAG));
   mrb_define_const(mrb, scim, "SCM_RELEASE", mrb_fixnum_value(SCM_RELEASE));
+
+  mrb_define_module_function(mrb, scim, "create_lexer", mrb_scintilla_create_lexer, MRB_ARGS_REQ(1));
 
   scmrb = mrb;
 

@@ -9,8 +9,8 @@ MRuby::Gem::Specification.new('mruby-scintilla-termbox') do |spec|
     scintilla_ver = '521'
     lexilla_ver = '515'
     scintilla_url = "https://scintilla.org/scintilla#{scintilla_ver}.tgz"
-    scintilla_termbox_url = "https://github.com/masahino/scintilla-termbox"
-    termbox_url = "https://github.com/nullgemm/termbox_next"
+    scintilla_termbox_url = 'https://github.com/masahino/scintilla-termbox'
+    termbox_url = 'https://github.com/nullgemm/termbox_next'
     lexilla_url = "https://scintilla.org/lexilla#{lexilla_ver}.tgz"
     scintilla_build_root = "#{build_dir}/scintilla/"
     scintilla_dir = "#{scintilla_build_root}/scintilla"
@@ -48,7 +48,11 @@ MRuby::Gem::Specification.new('mruby-scintilla-termbox') do |spec|
     end
 
     file termbox_a => termbox_h do
-      sh %((cd #{termbox_dir} && make CC=#{build.cc.command} AR=#{build.archiver.command}))
+      flags = ''
+      if RUBY_PLATFORM.downcase =~ /msys|mingw/
+        flags = '-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE'
+      end
+      sh %((cd #{termbox_dir} && make CC=#{build.cc.command} AR=#{build.archiver.command} FLAGS="#{flags}"))
     end
 
     file scintilla_a => [scintilla_h, scintilla_termbox_h, termbox_a] do

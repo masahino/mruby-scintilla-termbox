@@ -78,6 +78,7 @@ MRuby::Gem::Specification.new('mruby-scintilla-termbox') do |spec|
       linker.flags_before_libraries << lexilla_a
 
       linker.libraries << 'stdc++'
+      linker.libraries << 'pthread'
       [cc, cxx, objc, mruby.cc, mruby.cxx, mruby.objc].each do |cc|
         cc.include_paths << "#{scintilla_dir}/include"
         cc.include_paths << "#{scintilla_dir}/src"

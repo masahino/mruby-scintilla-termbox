@@ -10,7 +10,7 @@ MRuby::Gem::Specification.new('mruby-scintilla-termbox') do |spec|
     lexilla_ver = '516'
     scintilla_url = "https://scintilla.org/scintilla#{scintilla_ver}.tgz"
     scintilla_termbox_url = 'https://github.com/masahino/scintilla-termbox'
-    termbox_url = 'https://github.com/nullgemm/termbox_next'
+    termbox_url = 'https://github.com/masahino/termbox_next'
     lexilla_url = "https://scintilla.org/lexilla#{lexilla_ver}.tgz"
     scintilla_build_root = "#{build_dir}/scintilla/"
     scintilla_dir = "#{scintilla_build_root}/scintilla"

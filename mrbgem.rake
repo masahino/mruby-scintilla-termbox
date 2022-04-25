@@ -70,12 +70,11 @@ MRuby::Gem::Specification.new('mruby-scintilla-termbox') do |spec|
     end
 
     file lexilla_a => lexilla_h do
-      sh %Q{(cd #{lexilla_dir}/src && make CXX=#{build.cxx.command} AR=#{build.archiver.command})}
+      sh %{(cd #{lexilla_dir}/src && make CXX=#{build.cxx.command} AR=#{build.archiver.command})}
     end
 
     task :mruby_scintilla_termbox_with_compile_option do
       linker.flags_before_libraries << scintilla_a
-      linker.flags_before_libraries << lexilla_a
 
       linker.libraries << 'stdc++'
       linker.libraries << 'pthread'
@@ -86,9 +85,8 @@ MRuby::Gem::Specification.new('mruby-scintilla-termbox') do |spec|
         cc.include_paths << "#{lexilla_dir}/include"
       end
     end
-    file "#{dir}/src/scintilla_termbox.c" => [:mruby_scintilla_termbox_with_compile_option, scintilla_a, lexilla_a]
+    file "#{dir}/src/scintilla_termbox.c" => [:mruby_scintilla_termbox_with_compile_option, scintilla_a, lexilla_h]
     linker.flags_before_libraries << scintilla_a
-    linker.flags_before_libraries << lexilla_a
     linker.flags_before_libraries << termbox_a
 
     linker.libraries << 'stdc++'

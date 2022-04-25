@@ -513,17 +513,6 @@ mrb_scintilla_termbox_get_textrange(mrb_state *mrb, mrb_value self)
   return mrb_str_new_cstr(mrb, tr->lpstrText);
 }
 
-static mrb_value
-mrb_scintilla_create_lexer(mrb_state *mrb, mrb_value self)
-{
-  char *lang = NULL;
-  mrb_get_args(mrb, "z", &lang);
-
-  ILexer5 *pLexer = CreateLexer(lang);
-
-  return mrb_cptr_value(mrb, pLexer);
-}
-
 void
 mrb_mruby_scintilla_termbox_gem_init(mrb_state* mrb)
 {
@@ -571,8 +560,6 @@ mrb_mruby_scintilla_termbox_gem_init(mrb_state* mrb)
   mrb_define_const(mrb, scim, "SCM_PRESS", mrb_fixnum_value(SCM_PRESS));
   mrb_define_const(mrb, scim, "SCM_DRAG", mrb_fixnum_value(SCM_DRAG));
   mrb_define_const(mrb, scim, "SCM_RELEASE", mrb_fixnum_value(SCM_RELEASE));
-
-  mrb_define_module_function(mrb, scim, "create_lexer", mrb_scintilla_create_lexer, MRB_ARGS_REQ(1));
 
   scmrb = mrb;
 

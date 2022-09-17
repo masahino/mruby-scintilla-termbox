@@ -59,6 +59,9 @@ void scnotification(Scintilla *view, int msg, SCNotification *n, void *userdata)
 
   if (scdata->has_callback == TRUE) {
     callback = mrb_iv_get(scmrb, scdata->view_obj, mrb_intern_cstr(scmrb, "notification"));
+    if (mrb_nil_p(callback)) {
+	    return;
+    }
     scn = mrb_hash_new(scmrb);
     mrb_hash_set(scmrb, scn, mrb_str_new_cstr(scmrb, "code"), mrb_fixnum_value(n->nmhdr.code));
     // Sci_Position position

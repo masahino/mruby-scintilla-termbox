@@ -443,11 +443,10 @@ mrb_scintilla_termbox_send_mouse(mrb_state *mrb, mrb_value self)
 {
   Scintilla *sci = (Scintilla *)DATA_PTR(self);
   mrb_int event, button, y, x;
-  mrb_float time;
   mrb_bool shift, ctrl, alt, ret;
 
-  mrb_get_args(mrb, "ifiiibbb", &event, &time, &button, &y, &x, &shift, &ctrl, &alt);
-  ret = scintilla_send_mouse(sci, event, (unsigned int)time, button, y, x, shift, ctrl, alt);
+  mrb_get_args(mrb, "iiiibbb", &event, &button, &y, &x, &shift, &ctrl, &alt);
+  ret = scintilla_send_mouse(sci, event, button, y, x, shift, ctrl, alt);
 
   return (ret == TRUE)? mrb_true_value() : mrb_false_value();
 }
@@ -550,7 +549,7 @@ mrb_mruby_scintilla_termbox_gem_init(mrb_state* mrb)
     MRB_ARGS_REQ(2));
   mrb_define_method(mrb, sci, "send_message_set_pointer", mrb_scintilla_termbox_send_message_set_pointer, MRB_ARGS_REQ(2));
 
-  mrb_define_method(mrb, sci, "send_mouse", mrb_scintilla_termbox_send_mouse, MRB_ARGS_REQ(8));
+  mrb_define_method(mrb, sci, "send_mouse", mrb_scintilla_termbox_send_mouse, MRB_ARGS_REQ(7));
   mrb_define_method(mrb, sci, "get_clipboard", mrb_scintilla_termbox_get_clipboard, MRB_ARGS_NONE());
 
 

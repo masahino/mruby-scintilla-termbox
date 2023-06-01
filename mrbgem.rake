@@ -52,7 +52,7 @@ MRuby::Gem::Specification.new('mruby-scintilla-termbox') do |spec|
       if RUBY_PLATFORM.downcase =~ /msys|mingw|cygwin/
         flags = '-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE'
       end
-      sh %((cd #{termbox_dir} && make CC=#{build.cc.command} AR=#{build.archiver.command} FLAGS="#{flags}"))
+      sh %((cd #{termbox_dir} && make CC=#{build.cc.command} AR=#{build.archiver.command} EXTRA_FLAGS="#{flags}"))
     end
 
     file scintilla_a => [scintilla_h, scintilla_termbox_h, termbox_a] do

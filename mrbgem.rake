@@ -24,6 +24,10 @@ MRuby::Gem::Specification.new('mruby-scintilla-termbox') do |spec|
     lexilla_h = "#{lexilla_dir}/include/Lexilla.h"
     termbox_a = "#{termbox_dir}/bin/termbox.a"
     termbox_h = "#{termbox_dir}/src/termbox.h"
+    flags = ''
+    if RUBY_PLATFORM.downcase =~ /msys|mingw|cygwin/
+      flags = '-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE'
+    end
 
     file scintilla_h do
       URI.open(scintilla_url) do |http|
@@ -48,15 +52,11 @@ MRuby::Gem::Specification.new('mruby-scintilla-termbox') do |spec|
     end
 
     file termbox_a => termbox_h do
-      flags = ''
-      if RUBY_PLATFORM.downcase =~ /msys|mingw|cygwin/
-        flags = '-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE'
-      end
-      sh %((cd #{termbox_dir} && make CC=#{build.cc.command} AR=#{build.archiver.command} EXTRA_FLAGS="#{flags}"))
+      sh %((cd #{termbox_dir} && make CC=#{build.cc.command} AR=#{build.archiver.command} FLAGS="#{flags}"))
     end
 
     file scintilla_a => [scintilla_h, scintilla_termbox_h, termbox_a] do
-      sh %((cd #{scintilla_termbox_dir} && make CXX=#{build.cxx.command} AR=#{build.archiver.command}))
+      sh %((cd #{scintilla_termbox_dir} && make CXX=#{build.cxx.command} AR=#{build.archiver.command} EXTRA_FLAGS="#{flags}"))
     end
 
     file lexilla_h do

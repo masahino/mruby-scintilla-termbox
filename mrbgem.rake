@@ -1,7 +1,7 @@
 MRuby::Gem::Specification.new('mruby-scintilla-termbox') do |spec|
   spec.license = 'MIT'
   spec.authors = 'masahino'
-  spec.add_dependency 'mruby-scintilla-base', :github => 'masahino/mruby-scintilla-base'
+  spec.add_dependency 'mruby-scintilla-base', github: 'masahino/mruby-scintilla-base'
   spec.version = '5.3.8'
 
   def spec.download_scintilla
@@ -98,4 +98,6 @@ MRuby::Gem::Specification.new('mruby-scintilla-termbox') do |spec|
       cc.include_paths << "#{lexilla_dir}/include"
     end
   end
+
+  spec.download_scintilla
 end

@@ -2,12 +2,12 @@ MRuby::Gem::Specification.new('mruby-scintilla-termbox') do |spec|
   spec.license = 'MIT'
   spec.authors = 'masahino'
   spec.add_dependency 'mruby-scintilla-base', github: 'masahino/mruby-scintilla-base'
-  spec.version = '5.5.3'
+  spec.version = '5.5.5'
 
   def spec.download_scintilla
     require 'open-uri'
-    scintilla_ver = '553'
-    lexilla_ver = '541'
+    scintilla_ver = '555'
+    lexilla_ver = '543'
     scintilla_url = "https://scintilla.org/scintilla#{scintilla_ver}.tgz"
     scintilla_termbox_url = 'https://github.com/masahino/scintilla-termbox'
     termbox_url = 'https://github.com/masahino/termbox_next'

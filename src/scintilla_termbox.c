@@ -535,7 +535,7 @@ mrb_mruby_scintilla_termbox_gem_init(mrb_state* mrb)
   mrb_define_method(mrb, sci, "initialize", mrb_scintilla_termbox_initialize, MRB_ARGS_OPT(1));
   mrb_define_method(mrb, sci, "delete", mrb_scintilla_termbox_delete, MRB_ARGS_NONE());
   mrb_define_method(mrb, sci, "refresh", mrb_scintilla_termbox_refresh, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sci, "send_key", mrb_scintilla_termbox_send_key, MRB_ARGS_REQ(5));
+  mrb_define_method(mrb, sci, "send_key", mrb_scintilla_termbox_send_key, MRB_ARGS_REQ(4));
 
   mrb_define_method(mrb, sci, "send_message", mrb_scintilla_termbox_send_message, MRB_ARGS_ARG(1, 2));
   mrb_define_method(mrb, sci, "send_message_get_str", mrb_scintilla_termbox_send_message_get_str,

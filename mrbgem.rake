@@ -2,12 +2,12 @@ MRuby::Gem::Specification.new('mruby-scintilla-termbox') do |spec|
   spec.license = 'MIT'
   spec.authors = 'masahino'
   spec.add_dependency 'mruby-scintilla-base', github: 'masahino/mruby-scintilla-base'
-  spec.version = '5.5.8'
+  spec.version = '5.6.4'
 
   def spec.download_scintilla
     require 'open-uri'
-    scintilla_ver = '558'
-    lexilla_ver = '546'
+    scintilla_ver = '564'
+    lexilla_ver = '551'
     scintilla_url = "https://scintilla.org/scintilla#{scintilla_ver}.tgz"
     scintilla_termbox_url = 'https://github.com/masahino/scintilla-termbox'
     termbox_url = 'https://github.com/masahino/termbox_next'
@@ -69,9 +69,9 @@ MRuby::Gem::Specification.new('mruby-scintilla-termbox') do |spec|
       end
     end
 
-#    file lexilla_a => lexilla_h do
-#      sh %{(cd #{lexilla_dir}/src && make CXX=#{build.cxx.command} AR=#{build.archiver.command})}
-#    end
+    file lexilla_a => lexilla_h do
+      sh %{(cd #{lexilla_dir}/src && make CXX=#{build.cxx.command} AR=#{build.archiver.command})}
+    end
 
     task :mruby_scintilla_termbox_with_compile_option do
       linker.flags_before_libraries << scintilla_a
@@ -85,9 +85,10 @@ MRuby::Gem::Specification.new('mruby-scintilla-termbox') do |spec|
         cc.include_paths << "#{lexilla_dir}/include"
       end
     end
-    file "#{dir}/src/scintilla_termbox.c" => [:mruby_scintilla_termbox_with_compile_option, scintilla_a, lexilla_h]
+    file "#{dir}/src/scintilla_termbox.c" => [:mruby_scintilla_termbox_with_compile_option, scintilla_a, lexilla_h, lexilla_a]
     linker.flags_before_libraries << scintilla_a
     linker.flags_before_libraries << termbox_a
+    linker.flags_after_libraries << lexilla_a
 
     linker.libraries << 'stdc++'
     [cc, cxx, objc, mruby.cc, mruby.cxx, mruby.objc].each do |cc|
